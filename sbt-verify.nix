@@ -9,16 +9,12 @@ stdenv.mkDerivation {
   name = "sbtVerify";
   buildInputs = [ scala sbt ];
   buildPhase = ''
-    mkdir -p sbt/base
-    mkdir -p sbt/boot
-    mkdir -p ivy
-
-    sbt -Dsbt.global.base=sbt/base -Dsbt.boot.directory=sbt/boot -Dsbt.ivy.home=ivy publishLocal
+    export HOME=$PWD
+    sbt -Dsbt.global.base=.sbt/1.0 -Dsbt.ivy.home=.ivy publishLocal
   '';
 
   installPhase = ''
-    cp -r ivy $out
-    cp -r sbt $out
-    cp -r target $out
+    mkdir $out
+    cp -r .ivy .sbt target $out
   '';
 }

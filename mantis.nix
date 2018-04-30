@@ -1,8 +1,7 @@
 { stdenv, scala, sbt, fetchgit, callPackage, unzip }:
 
 let sbtVerify = callPackage ./sbt-verify.nix { };
-in
-stdenv.mkDerivation {
+in stdenv.mkDerivation {
   src = fetchgit {
     url = "https://github.com/input-output-hk/mantis.git";
     rev = "8f4961abb0ea85d64a3fae71341140505f35f932";
@@ -12,14 +11,12 @@ stdenv.mkDerivation {
   name = "mantis";
   buildInputs = [ scala sbt sbtVerify unzip ];
   buildPhase = ''
-    mkdir ivy
-    cp -r ${sbtVerify}/cache ivy
-    cp -r ${sbtVerify}/local ivy
-    cp -r ${sbtVerify}/sbt .
+    cp -r ${sbtVerify}/.ivy .
+    cp -r ${sbtVerify}/.sbt .
     cp -r ${sbtVerify}/target .
-    chmod -R u+w ivy sbt target
+    chmod -R u+w .ivy .sbt target
 
-    sbt -Dsbt.global.base=sbt/base -Dsbt.boot.directory=sbt/boot -Dsbt.ivy.home=ivy 'set test in Test := {}' dist
+    sbt -Dsbt.global.base=.sbt/1.0 -Dsbt.ivy.home=.ivy 'set test in Test := {}' dist
   '';
 
   installPhase = ''
