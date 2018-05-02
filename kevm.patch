@@ -1,0 +1,60 @@
+diff --git a/Makefile b/Makefile
+index 0f1a928..661a9a1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -4,7 +4,7 @@
+ BUILD_DIR:=$(CURDIR)/.build
+ BUILD_LOCAL:=$(BUILD_DIR)/local
+ LIBRARY_PATH:=$(BUILD_LOCAL)/lib
+-PKG_CONFIG_PATH:=$(LIBRARY_PATH)/pkgconfig
++PKG_CONFIG_PATH:=$(LIBRARY_PATH)/pkgconfig:$(PKG_CONFIG_PATH)
+ export LIBRARY_PATH
+ export PKG_CONFIG_PATH
+ 
+@@ -37,8 +37,7 @@ distclean: clean
+ 	opam switch system
+ 	opam switch remove 4.03.0+k --yes || true
+ 	cd $(K_SUBMODULE) \
+-		&& mvn clean -q
+-	git submodule deinit --force -- ./
++		&& mvn -Dmaven.repo.local=$(HOME)/.m2 clean -q
+ 
+ # Dependencies
+ # ------------
+@@ -50,19 +49,16 @@ plugin-deps: $(PLUGIN_SUBMODULE)/make.timestamp
+ 
+ $(K_SUBMODULE)/make.timestamp:
+ 	@echo "== submodule: $@"
+-	git submodule update --init -- $(K_SUBMODULE)
+ 	cd $(K_SUBMODULE) \
+-		&& mvn package -q -DskipTests -U
++		&& mvn -Dmaven.repo.local=$(HOME)/.m2 package -q -DskipTests -U
+ 	touch $(K_SUBMODULE)/make.timestamp
+ 
+ $(PANDOC_TANGLE_SUBMODULE)/make.timestamp:
+ 	@echo "== submodule: $@"
+-	git submodule update --init -- $(PANDOC_TANGLE_SUBMODULE)
+ 	touch $(PANDOC_TANGLE_SUBMODULE)/make.timestamp
+ 
+ $(PLUGIN_SUBMODULE)/make.timestamp: ocaml-deps
+ 	@echo "== submodule: $@"
+-	git submodule update --init --recursive -- $(PLUGIN_SUBMODULE)
+ 	touch $(PLUGIN_SUBMODULE)/make.timestamp
+ 
+ ocaml-deps: .build/local/lib/pkgconfig/libsecp256k1.pc
+@@ -77,7 +73,6 @@ ocaml-deps: .build/local/lib/pkgconfig/libsecp256k1.pc
+ # install secp256k1 from bitcoin-core
+ .build/local/lib/pkgconfig/libsecp256k1.pc:
+ 	@echo "== submodule: $@"
+-	git submodule update --init -- .build/secp256k1/
+ 	cd .build/secp256k1/ \
+ 		&& ./autogen.sh \
+ 		&& ./configure --enable-module-recovery --prefix="$(BUILD_LOCAL)" \
+@@ -199,7 +194,6 @@ split-tests: tests/ethereum-tests/make.timestamp split-proof-tests
+ 
+ tests/%/make.timestamp:
+ 	@echo "== submodule: $@"
+-	git submodule update --init -- tests/$*
+ 	touch $@
+ 
+ # Concrete Tests
